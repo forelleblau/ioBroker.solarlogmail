@@ -1,76 +1,110 @@
 {
-    "common": {
-        "name": "solarlogmail",
-        "version": "0.0.1",
-        "news": {
-            "0.0.1": {
-                "en": "initial release",
-                "de": "Erstveröffentlichung",
-                "ru": "Начальная версия",
-                "pt": "lançamento inicial",
-                "nl": "Eerste uitgave",
-                "fr": "Première version",
-                "it": "Versione iniziale",
-                "es": "Versión inicial",
-                "pl": "Pierwsze wydanie",
-                "zh-cn": "首次出版"
-            }
-        },
-        "title": "SolarlogMail",
-        "titleLang": {
-            "en": "SolarlogMail",
-            "de": "SolarlogMail",
-            "ru": "SolarlogMail",
-            "pt": "Solarlog Mail",
-            "nl": "SolarlogMail",
-            "fr": "SolarlogMail",
-            "it": "SolarlogMail",
-            "es": "SolarlogCorreo",
-            "pl": "SolarlogMail",
-            "zh-cn": "太阳能日志邮件"
-        },
-        "desc": {
-            "en": "Collects and displays data from solarlog-email notifications",
-            "de": "Sammelt und zeigt Daten aus Solarlog-E-Mail-Benachrichtigungen an",
-            "ru": "Собирает и отображает данные из уведомлений Solarlog по электронной почте",
-            "pt": "Coleta e exibe dados de notificações de e-mail solarlog",
-            "nl": "Verzamelt en toont gegevens van solarlog-e-mailmeldingen",
-            "fr": "Collecte et affiche les données des notifications par e-mail solarlog",
-            "it": "Raccoglie e visualizza i dati dalle notifiche e-mail di solarlog",
-            "es": "Recopila y muestra datos de notificaciones por correo electrónico de solarlog",
-            "pl": "Zbiera i wyświetla dane z powiadomień e-mail z solarlog",
-            "zh-cn": "收集并显示来自 solarlog 电子邮件通知的数据"
-        },
-        "authors": [
-            "forelleblau <marceladam@gmx.ch>"
-        ],
-        "keywords": [
-            "energy",
-            "solar"
-        ],
-        "license": "MIT",
-        "platform": "Javascript/Node.js",
-        "main": "main.js",
-        "icon": "solarlogmail.png",
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/forelleblau/ioBroker.solarlogmail/master/admin/solarlogmail.png",
-        "readme": "https://github.com/forelleblau/ioBroker.solarlogmail/blob/master/README.md",
-        "loglevel": "info",
-        "mode": "daemon",
-        "type": "energy",
-        "compact": true,
-        "materialize": true,
-        "supportCustoms": true,
-        "dependencies": [
-            {
-                "js-controller": ">=1.4.2"
-            }
-        ]
+  "common": {
+    "name": "solarlogmail",
+    "version": "0.0.1",
+    "news": {
+      "0.0.1": {
+        "en": "initial release",
+        "de": "Erstveröffentlichung",
+        "ru": "Начальная версия",
+        "pt": "lançamento inicial",
+        "nl": "Eerste uitgave",
+        "fr": "Première version",
+        "it": "Versione iniziale",
+        "es": "Versión inicial",
+        "pl": "Pierwsze wydanie",
+        "zh-cn": "首次出版"
+      }
     },
-    "native": {
-        "option1": true,
-        "option2": "42"
+    "title": "SolarlogMail",
+    "titleLang": {
+      "en": "SolarlogMail",
+      "de": "SolarlogMail",
+      "ru": "SolarlogMail",
+      "pt": "Solarlog Mail",
+      "nl": "SolarlogMail",
+      "fr": "SolarlogMail",
+      "it": "SolarlogMail",
+      "es": "SolarlogCorreo",
+      "pl": "SolarlogMail",
+      "zh-cn": "太阳能日志邮件"
     },
-    "objects": [],
-    "instanceObjects": []
+    "desc": {
+      "en": "Collects and displays data from solarlog-email notifications",
+      "de": "Sammelt und zeigt Daten aus Solarlog-E-Mail-Benachrichtigungen an",
+      "ru": "Собирает и отображает данные из уведомлений Solarlog по электронной почте",
+      "pt": "Coleta e exibe dados de notificações de e-mail solarlog",
+      "nl": "Verzamelt en toont gegevens van solarlog-e-mailmeldingen",
+      "fr": "Collecte et affiche les données des notifications par e-mail solarlog",
+      "it": "Raccoglie e visualizza i dati dalle notifiche e-mail di solarlog",
+      "es": "Recopila y muestra datos de notificaciones por correo electrónico de solarlog",
+      "pl": "Zbiera i wyświetla dane z powiadomień e-mail z solarlog",
+      "zh-cn": "收集并显示来自 solarlog 电子邮件通知的数据"
+    },
+    "authors": [
+      "forelleblau <marceladam@gmx.ch>"
+    ],
+    "keywords": [
+      "energy",
+      "solar"
+    ],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "main": "main.js",
+    "icon": "solarlogmail.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/forelleblau/ioBroker.solarlogmail/master/admin/solarlogmail.png",
+    "readme": "https://github.com/forelleblau/ioBroker.solarlogmail/blob/master/README.md",
+    "loglevel": "info",
+    "mode": "daemon",
+    "type": "energy",
+    "compact": true,
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "materialize": true,
+    "supportCustoms": true,
+    "dependencies": [{
+      "js-controller": ">=1.4.2"
+    }]
+  },
+  "encryptedNative": [
+    "password"
+  ],
+
+  "native": {
+    "username": "username",
+    "password": "password",
+    "host": "0.0.0.0",
+    "port": 993,
+    "tls": false,
+    "mailbox": "INBOX",
+    "searchFilter": ["solar-log", "solarlog-web"],
+    "markSeen": true,
+    "fetchUnreadOnStart": false
+  },
+
+
+  "objects": [],
+  "instanceObjects": [{
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "Device or service connected",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    }
+  ]
 }
