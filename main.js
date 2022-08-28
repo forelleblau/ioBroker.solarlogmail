@@ -8,6 +8,7 @@
 // you need to create an adapter
 const utils = require('@iobroker/adapter-core');
 const MailListener = require("mail-listener2");
+const HtmlTableToJson = require('html-table-to-json');
 
 // Load your modules here, e.g.:
 // const fs = require("fs");
@@ -16,7 +17,7 @@ const MailListener = require("mail-listener2");
  * The adapter instance
  * @type {ioBroker.Adapter}
  */
-let adapter;.
+let adapter;
 
 var mailListener;
 var username;
@@ -29,6 +30,7 @@ var searchFilter;
 var markSeen;
 var fetchUnreadOnStart;
 
+var datatables = [];
 
 /**
  * Starts the adapter instance
@@ -114,15 +116,15 @@ async function main() {
   markSeen = adapter.config.markSeen;
   fetchUnreadOnStart = adapter.config.fetchUnreadOnStart;
 
-  adapter.log.debug('username' + username);
-  adapter.log.debug('password' + password);
-  adapter.log.debug('host' + host);
-  adapter.log.debug('port' + port);
-  adapter.log.debug('tls' + tls);
-  adapter.log.debug('mailbox' + mailbox);
+  adapter.log.debug('username ' + username);
+  adapter.log.debug('password ' + password);
+  adapter.log.debug('host ' + host);
+  adapter.log.debug('port ' + port);
+  adapter.log.debug('tls ' + tls);
+  adapter.log.debug('mailbox ' + mailbox);
   //adapter.log.debug('searchFilter' + searchFilter);
-  adapter.log.debug('markSeen' + markSeen);
-  adapter.log.debug('fetchUnreadOnStart' + fetchUnreadOnStart);
+  adapter.log.debug('markSeen ' + markSeen);
+  adapter.log.debug('fetchUnreadOnStart ' + fetchUnreadOnStart);
 
 
 
@@ -142,7 +144,7 @@ async function main() {
       rejectUnauthorized: false
     },
     mailbox: mailbox, // mailbox to monitor
-    searchFilter: ["Solar_Log", "solarlog-web"], // the search filter being used after an IDLE notification has been retrieved
+    //searchFilter: ["Solar_Log", "solarlog-web"], // the search filter being used after an IDLE notification has been retrieved
     markSeen: markSeen, // all fetched email willbe marked as seen and not fetched next time
     fetchUnreadOnStart: fetchUnreadOnStart, // use it only if you want to get all unread email on lib start. Default is `false`,
     mailParserOptions: {
@@ -173,10 +175,75 @@ async function main() {
   mailListener.on("mail", function(mail, seqno, attributes) {
     // do something with mail object including attachments
     adapter.log.debug("emailParsed", mail);
-    adapter.log.debug("emailParsed" + JSON.parse(mail));
-    adapter.log.debug("seqno" + JSON.parse(seqno));
-    adapter.log.debug("attributes" + JSON.parse(attributes))
+    adapter.log.debug("emailParsed" + JSON.stringify(mail));
+    adapter.log.debug("seqno " + seqno);
+    adapter.log.debug("attributes " + JSON.stringify(attributes));
     // mail processing code goes here
+
+    var mailcontent = mail.eml;
+    var datatables = [];
+
+    var tabelnumber = mailcontent.split('<table').length - 1;
+
+    for (var i = 0; i < tabelnumber; i++) {
+
+      datatables[i] = mailcontent.split('<table')[i + 1].split('</table')[0];
+      adapter.log.debug('datatables: ' + i + ': ' + datatables[i]);
+
+    };
+
+    var solardatax = '<table>' + datatables[0].slice(datatables[0].indexOf('</tr>') + 5) + '</table>';
+    solardatax = '<table ' + solardatax + '</table>';
+    solardatax = solardatax.replace('Summe<', 'SummeTag<');
+    solardatax = solardatax.replace('Summe<', 'SummeMonat<');
+    solardatax = solardatax.replace('Summe<', 'SummeJahr<');
+    solardatax = solardatax.replace('Spez.<', 'SpezTag<');
+    solardatax = solardatax.replace('Spez.<', 'SpezMonat<');
+    solardatax = solardatax.replace('Spez.<', 'SpezJahr<');
+    solardatax = solardatax.replace('Soll<', 'SollTag<');
+    solardatax = solardatax.replace('Soll<', 'SollMonat<');
+    solardatax = solardatax.replace('Ist-Ertrag<', 'Ist-ErtragTag<');
+    solardatax = solardatax.replace('Ist-Ertrag<', 'Ist-ErtragMonat<');
+
+    var jsonsolardata = HtmlTableToJson.parse(solardatax);
+
+    var yielddata = [];
+    for (var key in jsonsolardata.results[0]) {
+
+      if (jsonsolardata.results[0][key][1] == "") {
+
+      } else {
+        console.log("Data!");
+        yielddata.push(jsonsolardata.results[0][key]);
+      }
+
+    };
+
+    adapter.log.debug('yielddata: ' + JSON.stringify(yielddata));
+
+
+
+    var consdata = '<table ' + datatables[1] + '</table>';
+
+    var jsonconsdata = HtmlTableToJson.parse(consdata);
+
+    var consumptiondata = [];
+
+    for (var key in jsonconsdata.results[0]) {
+
+      if (jsonconsdata.results[0][key][1] == "") {
+
+      } else {
+        console.log("Data!");
+        consumptiondata.push(jsonconsdata.results[0][key]);
+      }
+
+    };
+
+    adapter.log.debug('consdata: ' + JSON.stringify(consumptiondata));
+
+
+
   });
   /*
       For every state in the system there has to be also an object of type state
