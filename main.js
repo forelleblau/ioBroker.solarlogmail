@@ -190,6 +190,8 @@ async function main() {
     var lastmailtime = mail.subject.split('t vom ')[1].split(' - ')[1];
 
     await adapter.setStateAsync('info.SN', sn, true);
+    await adapter.setStateAsync('info.lastmaildate', lastmaildate, true);
+    await adapter.setStateAsync('info.lastmailtime', lastmailtime, true);
     //absender und Seriennummer
 
 
