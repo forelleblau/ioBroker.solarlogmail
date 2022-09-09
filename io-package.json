@@ -105,6 +105,18 @@
         "def": false
       },
       "native": {}
+    },
+    {
+      "_id": "info.SN",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "Serial Number",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
     }
   ]
 }
