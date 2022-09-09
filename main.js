@@ -165,7 +165,7 @@ async function main() {
   });
 
   mailListener.on("server:disconnected", function() {
-    adapter.log.debug("imapDisconnected");
+    adapter.log.info("imapDisconnected");
     await adapter.setStateAsync('info.connection', false, true);
   });
 
@@ -192,8 +192,8 @@ async function main() {
     await adapter.setStateAsync('info.SN', sn, true);
     await adapter.setStateAsync('info.lastmaildate', lastmaildate, true);
     await adapter.setStateAsync('info.lastmailtime', lastmailtime, true);
-    //absender und Seriennummer
 
+    adapter.log.info("Neue Ertragsmail vom " + lastmaildate + ", " + lastmailtime + " eingegangen!")
 
 
 
