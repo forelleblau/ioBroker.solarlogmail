@@ -117,6 +117,30 @@
         "write": false
       },
       "native": {}
+    },
+    {
+      "_id": "info.lastmaildate",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "Datum Mail Ertragsübersicht",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.lastmailtime",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "Zeit Mail Ertragsübersicht",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
     }
   ]
 }
