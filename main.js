@@ -353,91 +353,25 @@ async function main() {
       adapter.log.info('Mailtext: ' + mail);
     }
 
-
-    //function filterZahl(string)
-    //{
-    //zahl = parseFloat(string.match(/\d+\.?\d*/gi)[0]);
-    //return zahl;
-    //}
-
-    /*
-    \d = digit = alle zahlen
-
-    \. = normaler punkt
-
-    \.? = der punkt darf existieren, darf auch nicht
-
-    \d+ = die Zahlen soll 1 ziffer oder mehr sein
-
-    \d+\.?\d* = suche 1 oder mehrere Ziffer von Zahlen mit oder ohne punkt und mit oder ohne Zahlen hinter dem punkt
-
-    gi = ist eigentlich überflussig in diesem fall ^^
-
-    */
-
-
-
-
-
-
-
   });
 
-
-  /*
-      For every state in the system there has to be also an object of type state
-      Here a simple template for a boolean variable named "testVariable"
-      Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
-
-  await adapter.setObjectNotExistsAsync('testVariable', {
-    type: 'state',
-    common: {
-      name: 'testVariable',
-      type: 'boolean',    role: 'indicator',
-      read: true,
-      write: true,
-    },
-    native: {},
-  });
-  */
 
   // In order to get state updates, you need to subscribe to them. The following line adds a subscription for our variable we have created above.
-  adapter.subscribeStates('*.*');
+  adapter.subscribeStates('info.*');
   // You can also add a subscription for multiple states. The following line watches all states starting with "lights."
   // adapter.subscribeStates('lights.*');
   // Or, if you really must, you can also watch all states. Don't do this if you don't need to. Otherwise this will cause a lot of unnecessary load on the system:
   // adapter.subscribeStates('*');
-
   /*
-      setState examples
-      you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
+    // examples for the checkPassword/checkGroup functions
+    adapter.checkPassword('admin', 'iobroker', (res) => {
+      adapter.log.info('check user admin pw iobroker: ' + res);
+    });
 
-  // the variable testVariable is set to true as command (ack=false)
-  await adapter.setStateAsync('testVariable', true);
-
-  // same thing, but the value is flagged "ack"
-  // ack should be always set to true if the value is received from or acknowledged from the target system
-  await adapter.setStateAsync('testVariable', {
-    val: true,
-    ack: true
-  });
-
-  // same thing, but the state is deleted after 30s (getState will return null afterwards)
-  await adapter.setStateAsync('testVariable', {
-    val: true,
-    ack: true,
-    expire: 30
-  });
-
-  // examples for the checkPassword/checkGroup functions
-  adapter.checkPassword('admin', 'iobroker', (res) => {
-    adapter.log.info('check user admin pw iobroker: ' + res);
-  });
-
-  adapter.checkGroup('admin', 'admin', (res) => {
-    adapter.log.info('check group user admin group admin: ' + res);
-  });
-    */
+    adapter.checkGroup('admin', 'admin', (res) => {
+      adapter.log.info('check group user admin group admin: ' + res);
+    });
+      */
 }
 
 async function setyielddataobject(arr) {
@@ -640,7 +574,6 @@ async function setconsdataobject(arr) {
     await adapter.setStateAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tagessumme', parseFloat(arr[index].Tagessumme.split(" ")[0]), true);
 
   });
-
 } // end setconsdataobject
 
 async function setsimpledataobject(arr) {
