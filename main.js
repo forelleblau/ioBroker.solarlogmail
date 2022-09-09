@@ -112,7 +112,7 @@ async function main() {
   port = adapter.config.port;
   tls = adapter.config.tls;
   mailbox = adapter.config.mailbox;
-  searchFilter = adapter.config.searchFilter;
+  searchFilter = adapter.config.searchFilter.split(', ');
   markSeen = adapter.config.markSeen;
   fetchUnreadOnStart = adapter.config.fetchUnreadOnStart;
 
@@ -144,7 +144,7 @@ async function main() {
       rejectUnauthorized: false
     },
     mailbox: mailbox, // mailbox to monitor
-    //searchFilter: searchFilter, // the search filter being used after an IDLE notification has been retrieved
+    searchFilter: searchFilter, // the search filter being used after an IDLE notification has been retrieved
     markSeen: markSeen, // all fetched email willbe marked as seen and not fetched next time
     fetchUnreadOnStart: fetchUnreadOnStart, // use it only if you want to get all unread email on lib start. Default is `false`,
     mailParserOptions: {

@@ -78,7 +78,7 @@
     "port": 993,
     "tls": false,
     "mailbox": "INBOX",
-    "searchFilter": ["solar-log", "solarlog-web"],
+    "searchFilter": "Solar-Log",
     "markSeen": true,
     "fetchUnreadOnStart": false
   },
