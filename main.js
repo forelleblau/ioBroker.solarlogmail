@@ -112,12 +112,20 @@ async function main() {
   port = adapter.config.port;
   tls = adapter.config.tls;
   mailbox = adapter.config.mailbox;
+  adapter.log.debug('searchfilterconfig: ' + adapter.config.searchFilter)
   var searchFilterlist = adapter.config.searchFilter.split(', ');
+  adapter.log.debug('searchfilterlist: ' + searchFilterlist);
+
   for (var i = 0; i < searchFilterlist.length; i++) {
     var criteria = ['FROM'];
     criteria.push(searchFilterlist[i]);
+    adapter.log.debug('criteria: ' + criteria);
     searchFilter.push(criteria);
   }
+
+
+
+
   markSeen = adapter.config.markSeen;
   fetchUnreadOnStart = adapter.config.fetchUnreadOnStart;
 

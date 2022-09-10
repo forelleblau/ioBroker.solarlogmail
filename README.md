@@ -22,7 +22,7 @@ A solar-log device with email - notification enabled and access to the target em
 ### Getting started
 
 Just fill in your email account access data to the adapters settings.
-sender: indicate all sender-adresses you get SolarLog-notifications from (separated by ', '),i.e. 'm1234567@home.solarlog-web.de'.
+sender: indicate the sender-adress you get SolarLog-notifications from, i.e. 'm1234567@home.solarlog-web.de'. If you get mails from different adresses/SolarLogs, leave this field blank.
 
 ## Changelog
 
