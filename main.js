@@ -187,180 +187,189 @@ async function main() {
     adapter.log.debug("attributes " + JSON.stringify(attributes));
     // mail processing code goes here
 
-    if (JSON.stringify(mail.subject).includes("Solar-Log") == true) {
+    try {
 
-      var ctype = mail.headers['content-type'];
-      adapter.log.debug('content-type = ' + ctype);
+      if (JSON.stringify(mail.subject).includes("Solar-Log") == true) {
 
-      var sn = mail.subject.split('[')[1].split(']')[0].split(' ')[1];
-      var lastmaildate = mail.subject.split('t vom ')[1].split(' - ')[0];
-      var lastmailtime = mail.subject.split('t vom ')[1].split(' - ')[1];
+        var ctype = mail.headers['content-type'];
+        adapter.log.debug('content-type = ' + ctype);
 
-      await adapter.setStateAsync('info.SN', sn, true);
-      await adapter.setStateAsync('info.lastmaildate', lastmaildate, true);
-      await adapter.setStateAsync('info.lastmailtime', lastmailtime, true);
+        var sn = mail.subject.split('[')[1].split(']')[0].split(' ')[1];
+        var lastmaildate = mail.subject.split('t vom ')[1].split(' - ')[0];
+        var lastmailtime = mail.subject.split('t vom ')[1].split(' - ')[1];
 
-      adapter.log.info("Neue Ertragsmail vom " + lastmaildate + ", " + lastmailtime + " eingegangen!")
+        await adapter.setStateAsync('info.SN', sn, true);
+        await adapter.setStateAsync('info.lastmaildate', lastmaildate, true);
+        await adapter.setStateAsync('info.lastmailtime', lastmailtime, true);
 
-
-
-      if (mail.eml.includes("<table") == true) {
-        var mailcontent = mail.eml;
-
-        var datatables = [];
-
-        var tabelnumber = mailcontent.split('<table').length - 1;
-
-        for (var i = 0; i < tabelnumber; i++) {
-
-          datatables[i] = mailcontent.split('<table')[i + 1].split('</table')[0];
-          adapter.log.debug('datatables: ' + i + ': ' + datatables[i]);
-
-        };
-
-        var solardatax = '<table>' + datatables[0].slice(datatables[0].indexOf('</tr>') + 5) + '</table>';
-        solardatax = '<table ' + solardatax + '</table>';
-        solardatax = solardatax.replace('Summe<', 'SummeTag<');
-        solardatax = solardatax.replace('Summe<', 'SummeMonat<');
-        solardatax = solardatax.replace('Summe<', 'SummeJahr<');
-        solardatax = solardatax.replace('Spez.<', 'SpezTag<');
-        solardatax = solardatax.replace('Spez.<', 'SpezMonat<');
-        solardatax = solardatax.replace('Spez.<', 'SpezJahr<');
-        solardatax = solardatax.replace('Soll<', 'SollTag<');
-        solardatax = solardatax.replace('Soll<', 'SollMonat<');
-        solardatax = solardatax.replace('Ist-Ertrag<', 'IstErtragTag<');
-        solardatax = solardatax.replace('Ist-Ertrag<', 'IstErtragMonat<');
-
-        var jsonsolardata = HtmlTableToJson.parse(solardatax);
-
-        adapter.log.debug("jsonsolardata: " + jsonconsdata)
-
-        var yielddata = [];
-        for (var key in jsonsolardata.results[0]) {
-
-          if (jsonsolardata.results[0][key][1] == "") {
-
-          } else {
-            adapter.log.debug("Data!");
-            yielddata.push(jsonsolardata.results[0][key]);
-          }
-
-        };
-
-        adapter.log.debug('yielddata: ' + JSON.stringify(yielddata));
-
-        await setyielddataobject(yielddata);
+        adapter.log.info("Neue Ertragsmail vom " + lastmaildate + ", " + lastmailtime + " eingegangen!")
 
 
 
-        var consdata = '<table ' + datatables[1] + '</table>';
+        if (mail.eml.includes("<table") == true) {
+          var mailcontent = mail.eml;
 
-        var jsonconsdata = HtmlTableToJson.parse(consdata);
+          var datatables = [];
 
-        var consumptiondata = [];
+          var tabelnumber = mailcontent.split('<table').length - 1;
 
-        for (var key in jsonconsdata.results[0]) {
+          for (var i = 0; i < tabelnumber; i++) {
 
-          if (jsonconsdata.results[0][key][1] == "") {
+            datatables[i] = mailcontent.split('<table')[i + 1].split('</table')[0];
+            adapter.log.debug('datatables: ' + i + ': ' + datatables[i]);
 
-          } else {
-            adapter.log.debug("Data!");
-            consumptiondata.push(jsonconsdata.results[0][key]);
-          }
+          };
 
-        };
+          var solardatax = '<table>' + datatables[0].slice(datatables[0].indexOf('</tr>') + 5) + '</table>';
+          solardatax = '<table ' + solardatax + '</table>';
+          solardatax = solardatax.replace('Summe<', 'SummeTag<');
+          solardatax = solardatax.replace('Summe<', 'SummeMonat<');
+          solardatax = solardatax.replace('Summe<', 'SummeJahr<');
+          solardatax = solardatax.replace('Spez.<', 'SpezTag<');
+          solardatax = solardatax.replace('Spez.<', 'SpezMonat<');
+          solardatax = solardatax.replace('Spez.<', 'SpezJahr<');
+          solardatax = solardatax.replace('Soll<', 'SollTag<');
+          solardatax = solardatax.replace('Soll<', 'SollMonat<');
+          solardatax = solardatax.replace('Ist-Ertrag<', 'IstErtragTag<');
+          solardatax = solardatax.replace('Ist-Ertrag<', 'IstErtragMonat<');
 
-        adapter.log.debug('consdata: ' + JSON.stringify(consumptiondata));
+          var jsonsolardata = HtmlTableToJson.parse(solardatax);
 
-        await setconsdataobject(consumptiondata);
+          adapter.log.debug("jsonsolardata: " + jsonconsdata)
 
-      } else if (ctype.includes("text/plain") == true) {
+          var yielddata = [];
+          for (var key in jsonsolardata.results[0]) {
 
-        adapter.log.debug('Textmail - Mailtext: ' + mail.text);
+            if (jsonsolardata.results[0][key][1] == "") {
 
-        var textarray = mail.text.split("\n");
-        var dataarray = {
-          'Tag': [],
-          'Monat': [],
-          'Jahr': []
-        };
-        var dataarrayfinal = {
-          'Tag': [],
-          'Monat': [],
-          'Jahr': []
-        };
+            } else {
+              adapter.log.debug("Data!");
+              yielddata.push(jsonsolardata.results[0][key]);
+            }
 
-        adapter.log.debug("textarray orig : " + textarray);
+          };
 
-        var indexTag = textarray.indexOf('Tag:');
-        var indexMonat = textarray.indexOf('Monat:');
-        var indexJahr = textarray.indexOf('Jahr:');
+          adapter.log.debug('yielddata: ' + JSON.stringify(yielddata));
 
-        textarray.forEach((item, index) => {
-          if (index > indexTag && index < indexMonat) {
-            if (item) {
-              dataarray.Tag.push(item)
+          await setyielddataobject(yielddata);
+
+
+
+          var consdata = '<table ' + datatables[1] + '</table>';
+
+          var jsonconsdata = HtmlTableToJson.parse(consdata);
+
+          var consumptiondata = [];
+
+          for (var key in jsonconsdata.results[0]) {
+
+            if (jsonconsdata.results[0][key][1] == "") {
+
+            } else {
+              adapter.log.debug("Data!");
+              consumptiondata.push(jsonconsdata.results[0][key]);
+            }
+
+          };
+
+          adapter.log.debug('consdata: ' + JSON.stringify(consumptiondata));
+
+          await setconsdataobject(consumptiondata);
+
+        } else if (ctype.includes("text/plain") == true) {
+
+          adapter.log.debug('Textmail - Mailtext: ' + mail.text);
+
+          var textarray = mail.text.split("\n");
+          var dataarray = {
+            'Tag': [],
+            'Monat': [],
+            'Jahr': []
+          };
+          var dataarrayfinal = {
+            'Tag': [],
+            'Monat': [],
+            'Jahr': []
+          };
+
+          adapter.log.debug("textarray orig : " + textarray);
+
+          var indexTag = textarray.indexOf('Tag:');
+          var indexMonat = textarray.indexOf('Monat:');
+          var indexJahr = textarray.indexOf('Jahr:');
+
+          textarray.forEach((item, index) => {
+            if (index > indexTag && index < indexMonat) {
+              if (item) {
+                dataarray.Tag.push(item)
+              };
+            } else if (index > indexMonat && index < indexJahr) {
+              if (item) {
+                dataarray.Monat.push(item);
+              }
+            } else if (index > indexJahr) {
+              if (item) {
+                dataarray.Jahr.push(item);
+              }
+            }
+          });
+
+          adapter.log.debug("dataarray: " + JSON.stringify(dataarray));
+
+          dataarray.Tag.forEach(item => {
+
+            var itemsplit = item.split(/\s/);
+            var itemsplitclean = itemsplit.filter(n => n);
+            var dataarrayitem = {
+              'Kennzahl': itemsplitclean[0],
+              'Wert': parseFloat(itemsplitclean[1]),
+              'Einheit': itemsplitclean[2]
             };
-          } else if (index > indexMonat && index < indexJahr) {
-            if (item) {
-              dataarray.Monat.push(item);
-            }
-          } else if (index > indexJahr) {
-            if (item) {
-              dataarray.Jahr.push(item);
-            }
-          }
-        });
+            dataarrayfinal.Tag.push(dataarrayitem);
+          });
 
-        adapter.log.debug("dataarray: " + JSON.stringify(dataarray));
+          dataarray.Monat.forEach(item => {
+            var itemsplit = item.split(/\s/);
+            var itemsplitclean = itemsplit.filter(n => n);
+            var dataarrayitem = {
+              'Kennzahl': itemsplitclean[0],
+              'Wert': parseFloat(itemsplitclean[1]),
+              'Einheit': itemsplitclean[2]
+            };
+            dataarrayfinal.Monat.push(dataarrayitem);
+          });
 
-        dataarray.Tag.forEach(item => {
-
-          var itemsplit = item.split(/\s/);
-          var itemsplitclean = itemsplit.filter(n => n);
-          var dataarrayitem = {
-            'Kennzahl': itemsplitclean[0],
-            'Wert': parseFloat(itemsplitclean[1]),
-            'Einheit': itemsplitclean[2]
-          };
-          dataarrayfinal.Tag.push(dataarrayitem);
-        });
-
-        dataarray.Monat.forEach(item => {
-          var itemsplit = item.split(/\s/);
-          var itemsplitclean = itemsplit.filter(n => n);
-          var dataarrayitem = {
-            'Kennzahl': itemsplitclean[0],
-            'Wert': parseFloat(itemsplitclean[1]),
-            'Einheit': itemsplitclean[2]
-          };
-          dataarrayfinal.Monat.push(dataarrayitem);
-        });
-
-        dataarray.Jahr.forEach(item => {
-          var itemsplit = item.split(/\s/);
-          var itemsplitclean = itemsplit.filter(n => n);
-          var dataarrayitem = {
-            'Kennzahl': itemsplitclean[0],
-            'Wert': parseFloat(itemsplitclean[1]),
-            'Einheit': itemsplitclean[2]
-          };
-          dataarrayfinal.Jahr.push(dataarrayitem);
-        });
+          dataarray.Jahr.forEach(item => {
+            var itemsplit = item.split(/\s/);
+            var itemsplitclean = itemsplit.filter(n => n);
+            var dataarrayitem = {
+              'Kennzahl': itemsplitclean[0],
+              'Wert': parseFloat(itemsplitclean[1]),
+              'Einheit': itemsplitclean[2]
+            };
+            dataarrayfinal.Jahr.push(dataarrayitem);
+          });
 
 
 
 
-        adapter.log.debug("Dataarray: " + JSON.stringify(dataarrayfinal));
+          adapter.log.debug("Dataarray: " + JSON.stringify(dataarrayfinal));
 
-        await setsimpledataobject(dataarrayfinal);
+          await setsimpledataobject(dataarrayfinal);
 
+        } else {
+          adapter.log.info('Mailformat nicht erkannt');
+          adapter.log.info('Mailtext: ' + mail);
+        }
       } else {
-        adapter.log.info('Mailformat nicht erkannt');
-        adapter.log.info('Mailtext: ' + mail);
+        adapter.log.info("Mail eingegangen, aber nicht vom Solarlog");
       }
+    } catch (e) {
+      adapter.log.warn(`mailListenerOnMail - Fehler : ${e}`);
     }
   });
+
+
 
 
   // In order to get state updates, you need to subscribe to them. The following line adds a subscription for our variable we have created above.
@@ -382,10 +391,220 @@ async function main() {
 }
 
 async function setyielddataobject(arr) {
+  try {
 
-  arr.forEach(async (item, index) => {
+    arr.forEach(async (item, index) => {
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Summe', {
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Summe', {
+        type: 'state',
+        common: {
+          name: 'SummeTag',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh"
+        },
+        native: {}
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Spezifisch', {
+        type: 'state',
+        common: {
+          name: 'SpezifischTag',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh/kWp"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Soll', {
+        type: 'state',
+        common: {
+          name: 'SollTag',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.IstErtrag', {
+        type: 'state',
+        common: {
+          name: 'Ist-IstErtragTag',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "%"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Summe', {
+        type: 'state',
+        common: {
+          name: 'SummeMonat',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Spezifisch', {
+        type: 'state',
+        common: {
+          name: 'SpezifischMonat',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh/kWp"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Mittel', {
+        type: 'state',
+        common: {
+          name: 'MittelMonat',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Soll', {
+        type: 'state',
+        common: {
+          name: 'SollMonat',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.IstErtrag', {
+        type: 'state',
+        common: {
+          name: 'IstErtragMonat',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Jahr.Summe', {
+        type: 'state',
+        common: {
+          name: 'SummeJahr',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh"
+        },
+        native: {},
+      });
+
+      await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Jahr.Spezifisch', {
+        type: 'state',
+        common: {
+          name: 'SpezifischJahr',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh/kWp"
+        },
+        native: {},
+      });
+
+
+
+
+
+
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Summe', parseFloat(arr[index].SummeTag.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Spezifisch', parseFloat(arr[index].SpezTag.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Soll', parseFloat(arr[index].SollTag.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.IstErtrag', parseFloat(arr[index].IstErtragTag.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Summe', parseFloat(arr[index].SummeMonat.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Spezifisch', parseFloat(arr[index].SpezMonat.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Mittel', parseFloat(arr[index].Mittel.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Soll', parseFloat(arr[index].SollMonat.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.IstErtrag', parseFloat(arr[index].IstErtragMonat.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Jahr.Summe', parseFloat(arr[index].SummeJahr.split(" ")[0]), true);
+      await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Jahr.Spezifisch', parseFloat(arr[index].SpezJahr.split(" ")[0]), true);
+
+    });
+  } catch (e) {
+    adapter.log.warn(`setyielddataobject - Fehler : ${e}`);
+  }
+} //end setyielddataobject
+
+async function setconsdataobject(arr) {
+  try {
+
+    arr.forEach(async (item, index) => {
+
+      await adapter.setObjectNotExistsAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Typ', {
+        type: 'state',
+        common: {
+          name: 'Typ',
+          type: 'string',
+          role: 'value',
+          read: true,
+          write: false
+        },
+        native: {}
+      });
+
+      await adapter.setObjectNotExistsAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tagessumme', {
+        type: 'state',
+        common: {
+          name: 'SpezifischTag',
+          type: 'number',
+          role: 'value',
+          read: true,
+          write: false,
+          unit: "kWh"
+        },
+        native: {},
+      });
+
+      await adapter.setStateAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Typ', decodeURIComponent(arr[index].Typ.replace(/=/g, '%')), true);
+      await adapter.setStateAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tagessumme', parseFloat(arr[index].Tagessumme.split(" ")[0]), true);
+
+    });
+  } catch (e) {
+    adapter.log.warn(`setconsdataobject - Fehler : ${e}`);
+  }
+} // end setconsdataobject
+
+async function setsimpledataobject(arr) {
+  try {
+
+
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.Summe', {
       type: 'state',
       common: {
         name: 'SummeTag',
@@ -398,7 +617,7 @@ async function setyielddataobject(arr) {
       native: {}
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Spezifisch', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.Spezifisch', {
       type: 'state',
       common: {
         name: 'SpezifischTag',
@@ -411,7 +630,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Soll', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.Soll', {
       type: 'state',
       common: {
         name: 'SollTag',
@@ -424,7 +643,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.IstErtrag', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.IstErtrag', {
       type: 'state',
       common: {
         name: 'Ist-IstErtragTag',
@@ -437,7 +656,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Summe', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.Summe', {
       type: 'state',
       common: {
         name: 'SummeMonat',
@@ -450,7 +669,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Spezifisch', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.Spezifisch', {
       type: 'state',
       common: {
         name: 'SpezifischMonat',
@@ -463,7 +682,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Mittel', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.Mittel', {
       type: 'state',
       common: {
         name: 'MittelMonat',
@@ -476,7 +695,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Soll', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.Soll', {
       type: 'state',
       common: {
         name: 'SollMonat',
@@ -489,7 +708,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.IstErtrag', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.IstErtrag', {
       type: 'state',
       common: {
         name: 'IstErtragMonat',
@@ -502,7 +721,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Jahr.Summe', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Jahr.Summe', {
       type: 'state',
       common: {
         name: 'SummeJahr',
@@ -515,7 +734,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-    await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Jahr.Spezifisch', {
+    await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Jahr.Spezifisch', {
       type: 'state',
       common: {
         name: 'SpezifischJahr',
@@ -528,43 +747,7 @@ async function setyielddataobject(arr) {
       native: {},
     });
 
-
-
-
-
-
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Summe', parseFloat(arr[index].SummeTag.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Spezifisch', parseFloat(arr[index].SpezTag.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.Soll', parseFloat(arr[index].SollTag.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.IstErtrag', parseFloat(arr[index].IstErtragTag.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Summe', parseFloat(arr[index].SummeMonat.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Spezifisch', parseFloat(arr[index].SpezMonat.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Mittel', parseFloat(arr[index].Mittel.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.Soll', parseFloat(arr[index].SollMonat.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.IstErtrag', parseFloat(arr[index].IstErtragMonat.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Jahr.Summe', parseFloat(arr[index].SummeJahr.split(" ")[0]), true);
-    await adapter.setStateAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Jahr.Spezifisch', parseFloat(arr[index].SpezJahr.split(" ")[0]), true);
-
-  });
-} //end setyielddataobject
-
-async function setconsdataobject(arr) {
-
-  arr.forEach(async (item, index) => {
-
-    await adapter.setObjectNotExistsAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Typ', {
-      type: 'state',
-      common: {
-        name: 'Typ',
-        type: 'string',
-        role: 'value',
-        read: true,
-        write: false
-      },
-      native: {}
-    });
-
-    await adapter.setObjectNotExistsAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tagessumme', {
+    await adapter.setObjectNotExistsAsync('Verbrauch.Gesamt.Tagessumme', {
       type: 'state',
       common: {
         name: 'SpezifischTag',
@@ -577,186 +760,23 @@ async function setconsdataobject(arr) {
       native: {},
     });
 
-    await adapter.setStateAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Typ', decodeURIComponent(arr[index].Typ.replace(/=/g, '%')), true);
-    await adapter.setStateAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tagessumme', parseFloat(arr[index].Tagessumme.split(" ")[0]), true);
 
-  });
-} // end setconsdataobject
+    await adapter.setStateAsync('Ertrag.Gesamt.Tag.Summe', parseFloat(arr.Tag[0]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Tag.Spezifisch', parseFloat(arr.Tag[1]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Tag.Soll', parseFloat(arr.Tag[2]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Tag.IstErtrag', parseFloat(arr.Tag[3]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Monat.Summe', parseFloat(arr.Monat[0]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Monat.Spezifisch', parseFloat(arr.Monat[1]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Monat.Mittel', parseFloat(arr.Monat[2]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Monat.Soll', parseFloat(arr.Monat[4]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Monat.IstErtrag', parseFloat(arr.Monat[4]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Jahr.Summe', parseFloat(arr.Jahr[0]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Jahr.Spezifisch', parseFloat(arr.Jahr[1]["Wert"]), true);
 
-async function setsimpledataobject(arr) {
-
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.Summe', {
-    type: 'state',
-    common: {
-      name: 'SummeTag',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh"
-    },
-    native: {}
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.Spezifisch', {
-    type: 'state',
-    common: {
-      name: 'SpezifischTag',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh/kWp"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.Soll', {
-    type: 'state',
-    common: {
-      name: 'SollTag',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.IstErtrag', {
-    type: 'state',
-    common: {
-      name: 'Ist-IstErtragTag',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "%"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.Summe', {
-    type: 'state',
-    common: {
-      name: 'SummeMonat',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.Spezifisch', {
-    type: 'state',
-    common: {
-      name: 'SpezifischMonat',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh/kWp"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.Mittel', {
-    type: 'state',
-    common: {
-      name: 'MittelMonat',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.Soll', {
-    type: 'state',
-    common: {
-      name: 'SollMonat',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.IstErtrag', {
-    type: 'state',
-    common: {
-      name: 'IstErtragMonat',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Jahr.Summe', {
-    type: 'state',
-    common: {
-      name: 'SummeJahr',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Jahr.Spezifisch', {
-    type: 'state',
-    common: {
-      name: 'SpezifischJahr',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh/kWp"
-    },
-    native: {},
-  });
-
-  await adapter.setObjectNotExistsAsync('Verbrauch.Gesamt.Tagessumme', {
-    type: 'state',
-    common: {
-      name: 'SpezifischTag',
-      type: 'number',
-      role: 'value',
-      read: true,
-      write: false,
-      unit: "kWh"
-    },
-    native: {},
-  });
-
-
-  await adapter.setStateAsync('Ertrag.Gesamt.Tag.Summe', parseFloat(arr.Tag[0]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Tag.Spezifisch', parseFloat(arr.Tag[1]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Tag.Soll', parseFloat(arr.Tag[2]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Tag.IstErtrag', parseFloat(arr.Tag[3]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Monat.Summe', parseFloat(arr.Monat[0]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Monat.Spezifisch', parseFloat(arr.Monat[1]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Monat.Mittel', parseFloat(arr.Monat[2]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Monat.Soll', parseFloat(arr.Monat[4]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Monat.IstErtrag', parseFloat(arr.Monat[4]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Jahr.Summe', parseFloat(arr.Jahr[0]["Wert"]), true);
-  await adapter.setStateAsync('Ertrag.Gesamt.Jahr.Spezifisch', parseFloat(arr.Jahr[1]["Wert"]), true);
-
-  await adapter.setStateAsync('Verbrauch.Gesamt.Tagessumme', parseFloat(arr.Tag[4]["Wert"]), true);
-
+    await adapter.setStateAsync('Verbrauch.Gesamt.Tagessumme', parseFloat(arr.Tag[4]["Wert"]), true);
+  } catch (e) {
+    adapter.log.warn(`setsimpledataobject - Fehler : ${e}`);
+  }
 } //end setsimpledataobject
 
 // @ts-ignore parent is a valid property on module

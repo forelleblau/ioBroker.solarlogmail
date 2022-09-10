@@ -74,11 +74,11 @@
   "native": {
     "username": "username",
     "password": "password",
-    "host": "0.0.0.0",
+    "host": "",
     "port": 993,
     "tls": false,
     "mailbox": "INBOX",
-    "searchFilter": "Solar-Log",
+    "searchFilter": "@home.solarlog-web.ch",
     "markSeen": true,
     "fetchUnreadOnStart": false
   },
