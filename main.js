@@ -26,7 +26,7 @@ var host;
 var port;
 var tls;
 var mailbox;
-var searchFilter;
+var searchFilter = ['UNSEEN'];
 var markSeen;
 var fetchUnreadOnStart;
 
@@ -112,7 +112,12 @@ async function main() {
   port = adapter.config.port;
   tls = adapter.config.tls;
   mailbox = adapter.config.mailbox;
-  searchFilter = adapter.config.searchFilter.split(', ');
+  var searchFilterlist = adapter.config.searchFilter.split(', ');
+  for (var i = 0; i < searchFilterlist.length; i++) {
+    var criteria = ['FROM'];
+    criteria.push(searchFilterlist[i]);
+    searchFilter.push(criteria);
+  }
   markSeen = adapter.config.markSeen;
   fetchUnreadOnStart = adapter.config.fetchUnreadOnStart;
 
@@ -127,7 +132,7 @@ async function main() {
   adapter.log.debug('fetchUnreadOnStart ' + fetchUnreadOnStart);
 
 
-
+  //searchFilter: [['FROM', 'automated@message.com'], ['SUBJECT', 'subject for e-mail 1']],
 
 
 
@@ -159,12 +164,12 @@ async function main() {
 
   mailListener.start();
 
-  mailListener.on("server:connected", function() {
+  mailListener.on("server:connected", async function() {
     adapter.log.info("imapConnected");
     await adapter.setStateAsync('info.connection', true, true);
   });
 
-  mailListener.on("server:disconnected", function() {
+  mailListener.on("server:disconnected", async function() {
     adapter.log.info("imapDisconnected");
     await adapter.setStateAsync('info.connection', false, true);
   });
@@ -174,7 +179,7 @@ async function main() {
   });
 
 
-  mailListener.on("mail", function(mail, seqno, attributes) {
+  mailListener.on("mail", async function(mail, seqno, attributes) {
     // do something with mail object including attachments
     adapter.log.debug("emailParsed", mail);
     adapter.log.debug("emailParsed: " + JSON.stringify(mail));
@@ -182,177 +187,179 @@ async function main() {
     adapter.log.debug("attributes " + JSON.stringify(attributes));
     // mail processing code goes here
 
-    var ctype = mail.headers['content-type'];
-    adapter.log.debug('content-type = ' + ctype);
+    if (JSON.stringify(mail.subject).includes("Solar-Log") == true) {
 
-    var sn = mail.subject.split('[')[1].split(']')[0].split(' ')[1];
-    var lastmaildate = mail.subject.split('t vom ')[1].split(' - ')[0];
-    var lastmailtime = mail.subject.split('t vom ')[1].split(' - ')[1];
+      var ctype = mail.headers['content-type'];
+      adapter.log.debug('content-type = ' + ctype);
 
-    await adapter.setStateAsync('info.SN', sn, true);
-    await adapter.setStateAsync('info.lastmaildate', lastmaildate, true);
-    await adapter.setStateAsync('info.lastmailtime', lastmailtime, true);
+      var sn = mail.subject.split('[')[1].split(']')[0].split(' ')[1];
+      var lastmaildate = mail.subject.split('t vom ')[1].split(' - ')[0];
+      var lastmailtime = mail.subject.split('t vom ')[1].split(' - ')[1];
 
-    adapter.log.info("Neue Ertragsmail vom " + lastmaildate + ", " + lastmailtime + " eingegangen!")
+      await adapter.setStateAsync('info.SN', sn, true);
+      await adapter.setStateAsync('info.lastmaildate', lastmaildate, true);
+      await adapter.setStateAsync('info.lastmailtime', lastmailtime, true);
 
-
-
-    if (mail.eml.includes("<table") == true) {
-      var mailcontent = mail.eml;
-
-      var datatables = [];
-
-      var tabelnumber = mailcontent.split('<table').length - 1;
-
-      for (var i = 0; i < tabelnumber; i++) {
-
-        datatables[i] = mailcontent.split('<table')[i + 1].split('</table')[0];
-        adapter.log.debug('datatables: ' + i + ': ' + datatables[i]);
-
-      };
-
-      var solardatax = '<table>' + datatables[0].slice(datatables[0].indexOf('</tr>') + 5) + '</table>';
-      solardatax = '<table ' + solardatax + '</table>';
-      solardatax = solardatax.replace('Summe<', 'SummeTag<');
-      solardatax = solardatax.replace('Summe<', 'SummeMonat<');
-      solardatax = solardatax.replace('Summe<', 'SummeJahr<');
-      solardatax = solardatax.replace('Spez.<', 'SpezTag<');
-      solardatax = solardatax.replace('Spez.<', 'SpezMonat<');
-      solardatax = solardatax.replace('Spez.<', 'SpezJahr<');
-      solardatax = solardatax.replace('Soll<', 'SollTag<');
-      solardatax = solardatax.replace('Soll<', 'SollMonat<');
-      solardatax = solardatax.replace('Ist-Ertrag<', 'IstErtragTag<');
-      solardatax = solardatax.replace('Ist-Ertrag<', 'IstErtragMonat<');
-
-      var jsonsolardata = HtmlTableToJson.parse(solardatax);
-
-      adapter.log.debug("jsonsolardata: " + jsonconsdata)
-
-      var yielddata = [];
-      for (var key in jsonsolardata.results[0]) {
-
-        if (jsonsolardata.results[0][key][1] == "") {
-
-        } else {
-          adapter.log.debug("Data!");
-          yielddata.push(jsonsolardata.results[0][key]);
-        }
-
-      };
-
-      adapter.log.debug('yielddata: ' + JSON.stringify(yielddata));
-
-      setyielddataobject(yielddata);
+      adapter.log.info("Neue Ertragsmail vom " + lastmaildate + ", " + lastmailtime + " eingegangen!")
 
 
 
-      var consdata = '<table ' + datatables[1] + '</table>';
+      if (mail.eml.includes("<table") == true) {
+        var mailcontent = mail.eml;
 
-      var jsonconsdata = HtmlTableToJson.parse(consdata);
+        var datatables = [];
 
-      var consumptiondata = [];
+        var tabelnumber = mailcontent.split('<table').length - 1;
 
-      for (var key in jsonconsdata.results[0]) {
+        for (var i = 0; i < tabelnumber; i++) {
 
-        if (jsonconsdata.results[0][key][1] == "") {
+          datatables[i] = mailcontent.split('<table')[i + 1].split('</table')[0];
+          adapter.log.debug('datatables: ' + i + ': ' + datatables[i]);
 
-        } else {
-          adapter.log.debug("Data!");
-          consumptiondata.push(jsonconsdata.results[0][key]);
-        }
+        };
 
-      };
+        var solardatax = '<table>' + datatables[0].slice(datatables[0].indexOf('</tr>') + 5) + '</table>';
+        solardatax = '<table ' + solardatax + '</table>';
+        solardatax = solardatax.replace('Summe<', 'SummeTag<');
+        solardatax = solardatax.replace('Summe<', 'SummeMonat<');
+        solardatax = solardatax.replace('Summe<', 'SummeJahr<');
+        solardatax = solardatax.replace('Spez.<', 'SpezTag<');
+        solardatax = solardatax.replace('Spez.<', 'SpezMonat<');
+        solardatax = solardatax.replace('Spez.<', 'SpezJahr<');
+        solardatax = solardatax.replace('Soll<', 'SollTag<');
+        solardatax = solardatax.replace('Soll<', 'SollMonat<');
+        solardatax = solardatax.replace('Ist-Ertrag<', 'IstErtragTag<');
+        solardatax = solardatax.replace('Ist-Ertrag<', 'IstErtragMonat<');
 
-      adapter.log.debug('consdata: ' + JSON.stringify(consumptiondata));
+        var jsonsolardata = HtmlTableToJson.parse(solardatax);
 
-      setconsdataobject(consumptiondata);
+        adapter.log.debug("jsonsolardata: " + jsonconsdata)
 
-    } else if (ctype.includes("text/plain") == true) {
+        var yielddata = [];
+        for (var key in jsonsolardata.results[0]) {
 
-      adapter.log.debug('Textmail - Mailtext: ' + mail.text);
+          if (jsonsolardata.results[0][key][1] == "") {
 
-      var textarray = mail.text.split("\n");
-      var dataarray = {
-        'Tag': [],
-        'Monat': [],
-        'Jahr': []
-      };
-      var dataarrayfinal = {
-        'Tag': [],
-        'Monat': [],
-        'Jahr': []
-      };
+          } else {
+            adapter.log.debug("Data!");
+            yielddata.push(jsonsolardata.results[0][key]);
+          }
 
-      adapter.log.debug("textarray orig : " + textarray);
+        };
 
-      var indexTag = textarray.indexOf('Tag:');
-      var indexMonat = textarray.indexOf('Monat:');
-      var indexJahr = textarray.indexOf('Jahr:');
+        adapter.log.debug('yielddata: ' + JSON.stringify(yielddata));
 
-      textarray.forEach((item, index) => {
-        if (index > indexTag && index < indexMonat) {
-          if (item) {
-            dataarray.Tag.push(item)
+        await setyielddataobject(yielddata);
+
+
+
+        var consdata = '<table ' + datatables[1] + '</table>';
+
+        var jsonconsdata = HtmlTableToJson.parse(consdata);
+
+        var consumptiondata = [];
+
+        for (var key in jsonconsdata.results[0]) {
+
+          if (jsonconsdata.results[0][key][1] == "") {
+
+          } else {
+            adapter.log.debug("Data!");
+            consumptiondata.push(jsonconsdata.results[0][key]);
+          }
+
+        };
+
+        adapter.log.debug('consdata: ' + JSON.stringify(consumptiondata));
+
+        await setconsdataobject(consumptiondata);
+
+      } else if (ctype.includes("text/plain") == true) {
+
+        adapter.log.debug('Textmail - Mailtext: ' + mail.text);
+
+        var textarray = mail.text.split("\n");
+        var dataarray = {
+          'Tag': [],
+          'Monat': [],
+          'Jahr': []
+        };
+        var dataarrayfinal = {
+          'Tag': [],
+          'Monat': [],
+          'Jahr': []
+        };
+
+        adapter.log.debug("textarray orig : " + textarray);
+
+        var indexTag = textarray.indexOf('Tag:');
+        var indexMonat = textarray.indexOf('Monat:');
+        var indexJahr = textarray.indexOf('Jahr:');
+
+        textarray.forEach((item, index) => {
+          if (index > indexTag && index < indexMonat) {
+            if (item) {
+              dataarray.Tag.push(item)
+            };
+          } else if (index > indexMonat && index < indexJahr) {
+            if (item) {
+              dataarray.Monat.push(item);
+            }
+          } else if (index > indexJahr) {
+            if (item) {
+              dataarray.Jahr.push(item);
+            }
+          }
+        });
+
+        adapter.log.debug("dataarray: " + JSON.stringify(dataarray));
+
+        dataarray.Tag.forEach(item => {
+
+          var itemsplit = item.split(/\s/);
+          var itemsplitclean = itemsplit.filter(n => n);
+          var dataarrayitem = {
+            'Kennzahl': itemsplitclean[0],
+            'Wert': parseFloat(itemsplitclean[1]),
+            'Einheit': itemsplitclean[2]
           };
-        } else if (index > indexMonat && index < indexJahr) {
-          if (item) {
-            dataarray.Monat.push(item);
-          }
-        } else if (index > indexJahr) {
-          if (item) {
-            dataarray.Jahr.push(item);
-          }
-        }
-      });
+          dataarrayfinal.Tag.push(dataarrayitem);
+        });
 
-      adapter.log.debug("dataarray: " + JSON.stringify(dataarray));
+        dataarray.Monat.forEach(item => {
+          var itemsplit = item.split(/\s/);
+          var itemsplitclean = itemsplit.filter(n => n);
+          var dataarrayitem = {
+            'Kennzahl': itemsplitclean[0],
+            'Wert': parseFloat(itemsplitclean[1]),
+            'Einheit': itemsplitclean[2]
+          };
+          dataarrayfinal.Monat.push(dataarrayitem);
+        });
 
-      dataarray.Tag.forEach(item => {
-
-        var itemsplit = item.split(/\s/);
-        var itemsplitclean = itemsplit.filter(n => n);
-        var dataarrayitem = {
-          'Kennzahl': itemsplitclean[0],
-          'Wert': parseFloat(itemsplitclean[1]),
-          'Einheit': itemsplitclean[2]
-        };
-        dataarrayfinal.Tag.push(dataarrayitem);
-      });
-
-      dataarray.Monat.forEach(item => {
-        var itemsplit = item.split(/\s/);
-        var itemsplitclean = itemsplit.filter(n => n);
-        var dataarrayitem = {
-          'Kennzahl': itemsplitclean[0],
-          'Wert': parseFloat(itemsplitclean[1]),
-          'Einheit': itemsplitclean[2]
-        };
-        dataarrayfinal.Monat.push(dataarrayitem);
-      });
-
-      dataarray.Jahr.forEach(item => {
-        var itemsplit = item.split(/\s/);
-        var itemsplitclean = itemsplit.filter(n => n);
-        var dataarrayitem = {
-          'Kennzahl': itemsplitclean[0],
-          'Wert': parseFloat(itemsplitclean[1]),
-          'Einheit': itemsplitclean[2]
-        };
-        dataarrayfinal.Jahr.push(dataarrayitem);
-      });
+        dataarray.Jahr.forEach(item => {
+          var itemsplit = item.split(/\s/);
+          var itemsplitclean = itemsplit.filter(n => n);
+          var dataarrayitem = {
+            'Kennzahl': itemsplitclean[0],
+            'Wert': parseFloat(itemsplitclean[1]),
+            'Einheit': itemsplitclean[2]
+          };
+          dataarrayfinal.Jahr.push(dataarrayitem);
+        });
 
 
 
 
-      adapter.log.debug("Dataarray: " + JSON.stringify(dataarrayfinal));
+        adapter.log.debug("Dataarray: " + JSON.stringify(dataarrayfinal));
 
-      setsimpledataobject(dataarrayfinal);
+        await setsimpledataobject(dataarrayfinal);
 
-    } else {
-      adapter.log.info('Mailformat nicht erkannt');
-      adapter.log.info('Mailtext: ' + mail);
+      } else {
+        adapter.log.info('Mailformat nicht erkannt');
+        adapter.log.info('Mailtext: ' + mail);
+      }
     }
-
   });
 
 
