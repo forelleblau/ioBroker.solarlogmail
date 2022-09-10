@@ -11,7 +11,7 @@
 
 [![NPM](https://nodei.co/npm/iobroker.solarlogmail.png?downloads=true)](https://nodei.co/npm/iobroker.solarlogmail/)
 
-## solarlogmail adapter for ioBroker
+## Solar-Log e-mail adapter for ioBroker
 
 Collects and displays data from solarlog-email notifications
 
@@ -22,7 +22,7 @@ A solar-log device with email - notification enabled and access to the target em
 ### Getting started
 
 Just fill in your email account access data to the adapters settings.
-searchFilter: indicate all sender-adresses you get SolarLog-notifications from (separated by ', ').
+sender: indicate all sender-adresses you get SolarLog-notifications from (separated by ', '),i.e. 'm1234567@home.solarlog-web.de'.
 
 ## Changelog
 
