@@ -62,9 +62,9 @@
     "connectionType": "cloud",
     "dataSource": "poll",
     "materialize": true,
-    "supportCustoms": true,
+    "supportCustoms": false,
     "dependencies": [{
-      "js-controller": ">=1.4.2"
+      "js-controller": ">=3.3.22"
     }]
   },
   "encryptedNative": [
