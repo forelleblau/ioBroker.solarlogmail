@@ -445,7 +445,7 @@ async function setyielddataobject(arr) {
       await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tag.IstErtrag', {
         type: 'state',
         common: {
-          name: 'Ist-IstErtragTag',
+          name: 'Ist-ErtragTag',
           type: 'number',
           role: 'value',
           read: true,
@@ -510,12 +510,12 @@ async function setyielddataobject(arr) {
       await adapter.setObjectNotExistsAsync('Ertrag.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Monat.IstErtrag', {
         type: 'state',
         common: {
-          name: 'IstErtragMonat',
+          name: 'Ist-ErtragMonat',
           type: 'number',
           role: 'value',
           read: true,
           write: false,
-          unit: "kWh"
+          unit: "%"
         },
         native: {},
       });
@@ -589,7 +589,7 @@ async function setconsdataobject(arr) {
       await adapter.setObjectNotExistsAsync('Verbrauch.' + decodeURIComponent(arr[index][1].replace(/=/g, '%')) + '.Tagessumme', {
         type: 'state',
         common: {
-          name: 'SpezifischTag',
+          name: 'Tagessumme',
           type: 'number',
           role: 'value',
           read: true,
@@ -654,7 +654,7 @@ async function setsimpledataobject(arr) {
     await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Tag.IstErtrag', {
       type: 'state',
       common: {
-        name: 'Ist-IstErtragTag',
+        name: 'Ist-ErtragTag',
         type: 'number',
         role: 'value',
         read: true,
@@ -719,12 +719,12 @@ async function setsimpledataobject(arr) {
     await adapter.setObjectNotExistsAsync('Ertrag.Gesamt.Monat.IstErtrag', {
       type: 'state',
       common: {
-        name: 'IstErtragMonat',
+        name: 'Ist-ErtragMonat',
         type: 'number',
         role: 'value',
         read: true,
         write: false,
-        unit: "kWh"
+        unit: "%"
       },
       native: {},
     });
@@ -758,7 +758,7 @@ async function setsimpledataobject(arr) {
     await adapter.setObjectNotExistsAsync('Verbrauch.Gesamt.Tagessumme', {
       type: 'state',
       common: {
-        name: 'SpezifischTag',
+        name: 'Tagessumme',
         type: 'number',
         role: 'value',
         read: true,
@@ -776,7 +776,7 @@ async function setsimpledataobject(arr) {
     await adapter.setStateAsync('Ertrag.Gesamt.Monat.Summe', parseFloat(arr.Monat[0]["Wert"]), true);
     await adapter.setStateAsync('Ertrag.Gesamt.Monat.Spezifisch', parseFloat(arr.Monat[1]["Wert"]), true);
     await adapter.setStateAsync('Ertrag.Gesamt.Monat.Mittel', parseFloat(arr.Monat[2]["Wert"]), true);
-    await adapter.setStateAsync('Ertrag.Gesamt.Monat.Soll', parseFloat(arr.Monat[4]["Wert"]), true);
+    await adapter.setStateAsync('Ertrag.Gesamt.Monat.Soll', parseFloat(arr.Monat[3]["Wert"]), true);
     await adapter.setStateAsync('Ertrag.Gesamt.Monat.IstErtrag', parseFloat(arr.Monat[4]["Wert"]), true);
     await adapter.setStateAsync('Ertrag.Gesamt.Jahr.Summe', parseFloat(arr.Jahr[0]["Wert"]), true);
     await adapter.setStateAsync('Ertrag.Gesamt.Jahr.Spezifisch', parseFloat(arr.Jahr[1]["Wert"]), true);
