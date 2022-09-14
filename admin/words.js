@@ -62,7 +62,7 @@ systemDictionary = {
     "pl": "password",
     "zh-cn": "评 注"
   },
-  "Port": {
+  "port": {
     "en": "Port",
     "de": "Port",
     "ru": "Порт",
@@ -100,7 +100,7 @@ systemDictionary = {
   },
   "fetchUnreadOnStart": {
     "en": "process all unread messages when starting",
-    "de": "alle ungelesenen nachrichten beim start verarbeiten",
+    "de": "Alle ungelesenen nachrichten beim start verarbeiten",
     "ru": "обрабатывать все непрочитанные сообщения при запуске",
     "pt": "processar todas as mensagens não lidas ao iniciar",
     "nl": "verwerk alle ongelezen berichten als je begint",
