@@ -197,7 +197,7 @@ async function main() {
 
     try {
 
-      if (JSON.stringify(mail.subject).includes("Solar-Log") == true) {
+      if (JSON.stringify(mail.subject).includes("Ertrag") == true) {
 
         var ctype = mail.headers['content-type'];
         adapter.log.debug('content-type = ' + ctype);
